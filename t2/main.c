@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <string.h>
 
 // Usa bitwise pra verificar cada permissão e printa no formato -rwxrwxrwx.
 void exibirPermissoes(int permissoes, const char *arquivoNome) {
@@ -31,57 +31,72 @@ void defPermissoes(int *permissoes, int bit, int valor) {
 }
 
 int main() {
-    int permissoes;
-    char arquivoNome[50] = "arquivo.txt";
+    int permissoes = 0;
+    char comandos[50];
+    char arquivoNome[16] = "arquivo.txt";
+    char executa[10], alvo[10], permissaoTipo[10];
+    int permissaoOctal;
 
-    // Entrada inicial em octal para atender ao enunciado
-    printf("Insira as permissões do arquivo em formato octal (ex: 764): ");
-    scanf("%o", &permissoes);
+    printf("Simulação de Terminal de Permissões de Arquivo\n");
+    printf("Digite 'help' para ver os comandoss disponíveis.\n\n");
 
-    printf("Permissões iniciais: ");
-    exibirPermissoes(permissoes, arquivoNome);
+    while (1) {
+        // Simula um terminal
+        printf("> ");
+        fgets(comandos, sizeof(comandos), stdin);
+        
+        // Remove o newline final da string de comandos
+        comandos[strcspn(comandos, "\n")] = 0;
 
-    int opcao, grupo, tipo;
+        // Terminal
+        // strcmp -> comparação de strings (ASCII). Retorna 0 se iguais. <string.h>
+        // sscanf -> lê a string e armazena em variáveis.
 
-    do {
-        printf("\nSelecione uma opção:\n");
-        printf("1. Adicionar permissão\n");
-        printf("2. Remover permissão\n");
-        printf("3. Exibir permissões\n");
-        printf("0. Sair\n");
-        printf("Escolha: ");
-        scanf("%d", &opcao);
-
-        if (opcao == 1 || opcao == 2) {
-            printf("Escolha o grupo:\n");
-            printf("1. Proprietário (User)\n");
-            printf("2. Grupo (grupo)\n");
-            printf("3. Outros (Others)\n");
-            printf("Escolha: ");
-            scanf("%d", &grupo);
-
-            printf("Escolha o tipo de permissão:\n");
-            printf("1. Leitura (r)\n");
-            printf("2. Escrita (w)\n");
-            printf("3. Execução (x)\n");
-            printf("Escolha: ");
-            scanf("%d", &tipo);
-
-            int posicaoBit = 8 - 3 * (grupo - 1) - (tipo - 1);
-
-            if (opcao == 1) {
-                set_permission(&permissoes, posicaoBit, 1);
-            } else if (opcao == 2) {
-                set_permission(&permissoes, posicaoBit, 0);
+        if (sscanf(comandos, "%s %s %s", executa, alvo, permissaoTipo) == 1) {
+            if (strcmp(executa, "exit") == 0) {
+                printf("Saindo...\n");
+                break;
+            } else if (strcmp(executa, "show") == 0) {
+                exibirPermissoes(permissoes, arquivoNome);
+            } else if (strcmp(executa, "help") == 0) {
+                printf("comandoss disponíveis:\n");
+                printf("set [octal]        - Define as permissões usando um número octal (ex: set 764)\n");
+                printf("add u/g/o r/w/x    - Adiciona permissão de leitura, escrita ou execução\n");
+                printf("remove u/g/o r/w/x - Remove permissão de leitura, escrita ou execução\n");
+                printf("show               - Exibe as permissões atuais\n");
+                printf("exit               - Sai do programa\n");
+            } else {
+                printf("comandos inválido. Digite 'help' para ajuda.\n");
             }
+        } else if (sscanf(comandos, "%s %o", executa, &permissaoOctal) == 2 && strcmp(executa, "set") == 0) {
+            permissoes = permissaoOctal;
+            printf("Permissões definidas para ");
+            exibirPermissoes(permissoes, arquivoNome);
+        } else if (sscanf(comandos, "%s %s %s", executa, alvo, permissaoTipo) == 3) {
+            int grupo = -1, type = -1;
+            int addPerm = strcmp(executa, "add") == 0;
+            int removePerm = strcmp(executa, "remove") == 0;
 
-            printf("Permissões atualizadas: ");
-            exibirPermissoes(permissoes, arquivoNome);
-        } else if (opcao == 3) {
-            printf("Permissões atuais: ");
-            exibirPermissoes(permissoes, arquivoNome);
+            if (strcmp(alvo, "u") == 0) grupo = 0;
+            else if (strcmp(alvo, "g") == 0) grupo = 1;
+            else if (strcmp(alvo, "o") == 0) grupo = 2;
+
+            if (strcmp(permissaoTipo, "r") == 0) type = 0;
+            else if (strcmp(permissaoTipo, "w") == 0) type = 1;
+            else if (strcmp(permissaoTipo, "x") == 0) type = 2;
+
+            if (grupo != -1 && type != -1 && (addPerm || removePerm)) {
+                int posicaoBit = 8 - 3 * grupo - type;
+                defPermissoes(&permissoes, posicaoBit, addPerm);
+                printf("Permissões atualizadas: ");
+                exibirPermissoes(permissoes, arquivoNome);
+            } else {
+                printf("comandos inválido. Use 'add u/g/o r/w/x' ou 'remove u/g/o r/w/x'.\n");
+            }
+        } else {
+            printf("comandos não reconhecido. Digite 'help' para ajuda.\n");
         }
-    } while (opcao != 0);
+    }
 
     return 0;
 }
