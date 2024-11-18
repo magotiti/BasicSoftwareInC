@@ -2,13 +2,19 @@
 
 Este é um resumo a respeito dos operadores bitwise na linguagem de programação C. Esses operadores permitem manipulações de bits diretamente, sendo muito úteis em contextos de baixo nível, como programação de sistemas embarcados, manipulação de bandeiras (flags), operações de criptografia, otimização de desempenho em cálculos e controle de permissões.
 
+---
+
 ## Por que usar máscaras?
 
 Máscaras são valores que isolam ou alteram bits específicos em um número, aplicando operações como AND, OR e XOR para modificar ou verificar apenas partes específicas de um valor sem interferir nos outros bits. O uso de máscaras é particularmente comum em programação de sistemas, onde é preciso acessar e manipular bits individuais para configurar estados de hardware, permissões, ou outros atributos de controle em um sistema. Por exemplo, com máscaras, é possível ativar, desativar ou verificar estados específicos dentro de um registro de controle, algo essencial em desenvolvimento de drivers e interfaces de comunicação.
 
+No programa apresentado, as máscaras são usadas para verificar ou alterar bits que correspondem a permissões específicas (leitura, escrita e execução) em diferentes categorias (proprietário, grupo e outros). Por exemplo, operações como `permissoes & (1 << 8)` aplicam máscaras para verificar se o bit de leitura do proprietário está ativo, enquanto `*permissoes |= (1 << bit)` ativa bits correspondentes a permissões.
+
 ## Representação binária e hexadecimal
 
 A representação binária (base 2) exibe cada bit individualmente como 0 ou 1, tornando-a ideal para visualização precisa de cada bit. No entanto, a leitura de números binários longos pode ser difícil. Em contrapartida, a representação hexadecimal (base 16) oferece uma maneira mais compacta de representar números binários, usando dígitos de 0 a F, onde cada dígito hexadecimal representa quatro bits. Em programação de sistemas, a notação hexadecimal é amplamente usada para definir máscaras, endereços de memória e valores binários de maneira mais legível e concisa, enquanto a notação binária é útil para operações bitwise ao nível mais detalhado.
+
+No programa, as permissões são manipuladas em um formato binário para acesso direto aos bits, enquanto os valores numéricos das permissões podem ser definidos em formatos como octal, frequentemente utilizados em sistemas Unix/Linux para simplificar a configuração.
 
 ## Operadores Bitwise
 
@@ -158,3 +164,26 @@ int value = 0b11001010; // 202 em decimal
 int mask = 0b00001111;  // Máscara para limpar os quatro bits mais à esquerda
 int result = (value >> 2) & mask; // Desloca value para a direita e limpa os quatro bits mais à esquerda
 ```
+
+## Aplicações no Programa
+
+No programa, os operadores bitwise foram usados principalmente para:
+
+1. **Verificar permissões**: O operador AND (`&`) em combinação com `1 << bit` é utilizado para verificar se uma permissão específica está ativa. 
+2. **Ativar permissões**: O operador OR (`|`) ativa um bit correspondente a uma permissão, como em `*permissoes |= (1 << bit)`.
+3. **Desativar permissões**: O operador AND (`&`) e NOT (`~`) são usados juntos para limpar bits específicos, desativando permissões.
+4. **Exibir permissões**: As permissões são exibidas no formato `-rwxrwxrwx`, baseando-se nos bits ativados.
+
+O programa aceita comandos para adicionar, remover e definir permissões em formato octal, mostrando a aplicação prática dos operadores bitwise em um cenário realista de manipulação de permissões.
+
+**Exemplo de uso no programa:**
+
+Entrada:
+```
+add u r
+add u w
+show
+```
+Saída:
+```plaintext
+-rw------- arquivo.txt
